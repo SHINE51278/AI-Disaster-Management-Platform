@@ -1,0 +1,77 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          79.6,
+          17.98
+        ]
+      },
+      "properties": {
+        "risk_score": 25,
+        "risk_level": "LOW",
+        "risk_zone": "LOW_RISK_ZONE",
+        "display_color": "green",
+        "disaster_type": "FLOOD",
+        "confidence": 0.9
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          79.64,
+          18.02
+        ]
+      },
+      "properties": {
+        "risk_score": 50,
+        "risk_level": "MEDIUM",
+        "risk_zone": "MEDIUM_RISK_ZONE",
+        "display_color": "yellow",
+        "disaster_type": "FLOOD",
+        "confidence": 0.82
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          79.67,
+          18.05
+        ]
+      },
+      "properties": {
+        "risk_score": 75,
+        "risk_level": "HIGH",
+        "risk_zone": "HIGH_RISK_ZONE",
+        "display_color": "orange",
+        "disaster_type": "FLOOD",
+        "confidence": 0.74
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          79.7,
+          18.08
+        ]
+      },
+      "properties": {
+        "risk_score": 95,
+        "risk_level": "CRITICAL",
+        "risk_zone": "CRITICAL_RISK_ZONE",
+        "display_color": "red",
+        "disaster_type": "FLOOD",
+        "confidence": 0.91
+      }
+    }
+  ]
+}
