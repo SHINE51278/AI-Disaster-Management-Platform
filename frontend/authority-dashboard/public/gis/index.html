@@ -125,6 +125,7 @@
         const hospitalLayer = L.layerGroup().addTo(map);
 
         const userLocationLayer = L.layerGroup().addTo(map);
+	const riskZoneLayer = L.layerGroup().addTo(map);
 
                 // --------------------------------------------------
         // Custom GIS marker icons
@@ -163,25 +164,223 @@
         });
 
 
-        // --------------------------------------------------
-        // 4. Demo incident markers
-        // --------------------------------------------------
+       // --------------------------------------------------
+// 4. Incident markers
+// --------------------------------------------------
 
-      
+function addIncidentMarker(incident) {
 
-        incidents.forEach((incident) => {
+    const latitude = Number(incident.latitude);
+    const longitude = Number(incident.longitude);
 
-            L.marker([
-                incident.latitude,
-                incident.longitude
-            ], { icon: incidentIcon })
-            .bindPopup(
-                `<strong>Incident</strong><br>${incident.name}`
-            )
-            .addTo(incidentLayer);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        console.warn("Skipping incident with invalid coordinates:", incident);
+        return;
+    }
+
+    const title = incident.title || incident.name || "Incident";
+
+    const description =
+        incident.description || "No description available";
+
+    const disasterType =
+        incident.disaster_type || incident.type || "UNKNOWN";
+
+    const severity =
+        incident.severity || "UNKNOWN";
+
+    const status =
+        incident.status || "UNKNOWN";
+
+    const priority =
+        incident.priority_score ?? "N/A";
+
+    L.marker(
+        [latitude, longitude],
+        { icon: incidentIcon }
+    )
+        .bindPopup(`
+            <strong>${title}</strong><br>
+            Type: ${disasterType}<br>
+            Severity: ${severity}<br>
+            Status: ${status}<br>
+            Priority: ${priority}<br>
+            ${description}
+        `)
+        .addTo(incidentLayer);
+}
+
+
+// Existing demo incidents
+incidents.forEach(addIncidentMarker);
+
+
+// Live backend incidents
+async function loadLiveIncidents() {
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        console.warn(
+            "No authentication token found. Using demo incidents."
+        );
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${GIS_CONFIG.API_BASE_URL}/incidents/active`,
+            {
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Incident API returned ${response.status}`
+            );
+        }
+
+        const liveIncidents = await response.json();
+
+        console.log(
+            "Live incidents received:",
+            liveIncidents
+        );
+
+        liveIncidents.forEach(addIncidentMarker);
+
+    } catch (error) {
+
+        console.error(
+            "Unable to load live incidents. Demo incidents remain visible:",
+            error
+        );
+
+    }
+}
+
+loadLiveIncidents();
+
+
+// --------------------------------------------------
+// Live Risk Zones
+// --------------------------------------------------
+
+async function loadLiveRiskZones() {
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        console.warn(
+            "No authentication token found. Risk zones will not load."
+        );
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${GIS_CONFIG.API_BASE_URL}/risk-zones`,
+            {
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Risk Zone API returned ${response.status}`
+            );
+        }
+
+        const riskZones = await response.json();
+
+        console.log(
+            "Risk zones received:",
+            riskZones
+        );
+
+        const now = new Date();
+
+        riskZones.forEach((zone) => {
+
+            const validFrom = new Date(zone.valid_from);
+
+            const validUntil = zone.valid_until
+                ? new Date(zone.valid_until)
+                : null;
+
+            // Ignore zones that are not currently valid.
+            if (validFrom > now) {
+                return;
+            }
+
+            if (validUntil && validUntil < now) {
+                console.log(
+                    "Skipping expired risk zone:",
+                    zone.id
+                );
+                return;
+            }
+
+            let fillColor = "#22c55e";
+
+            if (zone.risk_level === "CRITICAL") {
+                fillColor = "#991b1b";
+            } else if (zone.risk_level === "HIGH") {
+                fillColor = "#dc2626";
+            } else if (zone.risk_level === "MEDIUM") {
+                fillColor = "#f59e0b";
+            }
+
+            L.geoJSON(
+                zone.geometry,
+                {
+                    style: {
+                        color: fillColor,
+                        fillColor: fillColor,
+                        fillOpacity: 0.35,
+                        weight: 3
+                    },
+
+                onEachFeature: function (feature, layer) {
+
+    layer.bindPopup(`
+        <strong>Risk Zone</strong><br>
+        Disaster: ${zone.disaster_type}<br>
+        Risk Score: ${zone.risk_score}<br>
+        Risk Level: ${zone.risk_level}<br>
+        Valid From: ${zone.valid_from}<br>
+        Valid Until: ${
+            zone.valid_until ?? "No expiry"
+        }
+    `);
+
+}
+
+
+            }).addTo(riskZoneLayer);
 
         });
 
+    } catch (error) {
+
+        console.error(
+            "Unable to load risk zones:",
+            error
+        );
+
+    }
+}
+
+loadLiveRiskZones();
 
         // --------------------------------------------------
         // 5. Demo shelter markers
@@ -269,18 +468,19 @@ console.log("GIS Backend:", GIS_CONFIG.API_BASE_URL);
         // 8. Layer control
         // --------------------------------------------------
 
-        const overlays = {
+       const overlays = {
 
-            "Incidents": incidentLayer,
+    "Incidents": incidentLayer,
 
-            "Shelters": shelterLayer,
+    "Shelters": shelterLayer,
 
-            "Hospitals": hospitalLayer,
+    "Hospitals": hospitalLayer,
 
-            "My Location": userLocationLayer
+    "Risk Zones": riskZoneLayer,
 
-        };
+    "My Location": userLocationLayer
 
+};
         L.control.layers(null, overlays).addTo(map);
 
     </script>

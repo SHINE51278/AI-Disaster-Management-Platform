@@ -77,6 +77,17 @@ function Dashboard({ onLogout }) {
           )}
         </section>
 
+	<section className="gis-section">
+  <div className="section-header">
+    <h2>Live Disaster Map</h2>
+  </div>
+
+  <iframe
+    src="/gis/index.html"
+    title="Disaster Management GIS Map"
+    className="gis-frame"
+  />
+</section>
         <section>
           <h2>Current Incidents</h2>
 
