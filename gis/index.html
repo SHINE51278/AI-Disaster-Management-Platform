@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Disaster Management GIS Map</title>
+
+    <!-- Leaflet CSS -->
+    <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+    <style>
+        .gis-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.incident-marker {
+    background: #dc2626;
+}
+
+.shelter-marker {
+    background: #16a34a;
+}
+
+.hospital-marker {
+    background: #2563eb;
+}
+
+.location-marker {
+    background: #7c3aed;
+}
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .map-header {
+            padding: 16px 24px;
+            background: #1f2937;
+            color: white;
+        }
+
+        .map-header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .map-header p {
+            margin: 5px 0 0;
+            font-size: 14px;
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 82px);
+        }
+    </style>
+    <script src="data/incidents.js"></script>
+<script src="data/shelters.js"></script>
+<script src="data/hospitals.js"></script>
+
+
+</head>
+
+<body>
+
+    <header class="map-header">
+        <h1>Disaster Management Interactive Map</h1>
+        <p>Incidents • Shelters • Hospitals • User Location</p>
+    </header>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+
+        // --------------------------------------------------
+        // 1. Initialize map
+        // --------------------------------------------------
+
+        const map = L.map("map").setView([17.3850, 78.4867], 12);
+
+
+        // --------------------------------------------------
+        // 2. OpenStreetMap base layer
+        // --------------------------------------------------
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
+
+
+        // --------------------------------------------------
+        // 3. Marker groups
+        // --------------------------------------------------
+
+        const incidentLayer = L.layerGroup().addTo(map);
+
+        const shelterLayer = L.layerGroup().addTo(map);
+
+        const hospitalLayer = L.layerGroup().addTo(map);
+
+        const userLocationLayer = L.layerGroup().addTo(map);
+
+                // --------------------------------------------------
+        // Custom GIS marker icons
+        // --------------------------------------------------
+
+        const incidentIcon = L.divIcon({
+            className: "",
+            html: '<div class="gis-marker incident-marker">!</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+
+        const shelterIcon = L.divIcon({
+            className: "",
+            html: '<div class="gis-marker shelter-marker">S</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+
+        const hospitalIcon = L.divIcon({
+            className: "",
+            html: '<div class="gis-marker hospital-marker">H</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+
+        const locationIcon = L.divIcon({
+            className: "",
+            html: '<div class="gis-marker location-marker">●</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+
+
+        // --------------------------------------------------
+        // 4. Demo incident markers
+        // --------------------------------------------------
+
+      
+
+        incidents.forEach((incident) => {
+
+            L.marker([
+                incident.latitude,
+                incident.longitude
+            ], { icon: incidentIcon })
+            .bindPopup(
+                `<strong>Incident</strong><br>${incident.name}`
+            )
+            .addTo(incidentLayer);
+
+        });
+
+
+        // --------------------------------------------------
+        // 5. Demo shelter markers
+        // --------------------------------------------------
+
+       
+
+        shelters.forEach((shelter) => {
+
+            L.marker([
+                shelter.latitude,
+                shelter.longitude
+            ], { icon: shelterIcon })
+            .bindPopup(
+                `<strong>Shelter</strong><br>${shelter.name}`
+            )
+            .addTo(shelterLayer);
+
+        });
+
+
+        // --------------------------------------------------
+        // 6. Demo hospital markers
+        // --------------------------------------------------
+
+       
+
+        hospitals.forEach((hospital) => {
+
+            L.marker([
+                hospital.latitude,
+                hospital.longitude
+            ], { icon: hospitalIcon })
+            .bindPopup(
+                `<strong>Hospital</strong><br>${hospital.name}`
+            )
+            .addTo(hospitalLayer);
+
+        });
+
+
+        // --------------------------------------------------
+        // 7. User location
+        // --------------------------------------------------
+
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+const userMarker = L.marker(
+    [
+        latitude,
+        longitude
+    ],
+    {
+        icon: locationIcon
+    }
+).addTo(userLocationLayer);
+            userMarker.bindPopup("Your Location");
+
+            // Keep the map centered on the demo area.
+            // The user's location is still displayed as a marker.
+        },
+        function (error) {
+            console.error("Geolocation error:", error);
+        }
+    );
+}else {
+
+            console.log(
+                "Geolocation is not supported by this browser."
+            );
+
+        }
+
+
+        // --------------------------------------------------
+        // 8. Layer control
+        // --------------------------------------------------
+
+        const overlays = {
+
+            "Incidents": incidentLayer,
+
+            "Shelters": shelterLayer,
+
+            "Hospitals": hospitalLayer,
+
+            "My Location": userLocationLayer
+
+        };
+
+        L.control.layers(null, overlays).addTo(map);
+
+    </script>
+
+
+</body>
+</html>
