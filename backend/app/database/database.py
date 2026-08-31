@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
     ENVIRONMENT: str = "development"
+    RISK_AI_URL: str = "http://127.0.0.1:8001"
 
     model_config = SettingsConfigDict(
         env_file=".env",

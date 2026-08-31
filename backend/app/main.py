@@ -36,7 +36,7 @@ from backend.app.routes.alerts import router as alerts_router
 from backend.app.routes.relief_distributions import (
     router as relief_distributions_router
 )
-
+from backend.app.routes.ai_risk import router as ai_risk_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -80,7 +80,7 @@ app.include_router(road_blockages_router, prefix=API_PREFIX)
 app.include_router(damage_reports_router, prefix=API_PREFIX)
 app.include_router(alerts_router, prefix=API_PREFIX)
 app.include_router(relief_distributions_router, prefix=API_PREFIX)
-
+app.include_router(ai_risk_router, prefix=API_PREFIX)
 
 # ============================================================
 # ROOT / HEALTH ENDPOINTS
